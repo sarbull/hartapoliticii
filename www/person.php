@@ -98,6 +98,12 @@ $t = $width == 250 ? "width=$width" : "";
 
 echo "<div class=identity_img><img src=\"$img\" $t></div>";
 
+$nume_parlamentar = $_GET['name'];
+?>
+<div align="center" style="padding-top:10px;">
+  <iframe src="//www.facebook.com/plugins/like.php?href=<?php echo rawurlencode($_SERVER['SERVER_NAME'] . "/?name=" . $nume_parlamentar); ?>&amp;send=false&amp;layout=standard&amp;width=310&amp;show_faces=false&amp;action=like&amp;colorscheme=light&amp;font=arial&amp;height=35" scrolling="no" frameborder="0" style="border:none; overflow:hidden; width:310px; height:35px;" allowTransparency="true"></iframe>
+</div>
+<?php
 // ----------------------------------------------------------
 // -------------- The left hand side section ----------------
 
@@ -108,82 +114,92 @@ $t->assign('qualifiers', $person->getNewsQualifiers(10));
 $t->display('person_qualifiers.tpl');
 
 // Display all contact details of the person
-include('mods/contact_details.php');
+/*    */ include('mods/contact_details.php');
 
 // TODO: make the compact mods also something automatic.
 include('mods/news_compact.php');
 
 include('mods/person_declarations_compact.php');
 
+
+
+
 $t = new Smarty();
+/*    */ 
 $t->assign('title', $title);
 $t->assign('idperson', $person->id);
 $t->display('person_sidebar_extra_links.tpl');
-
+/*    */ 
 echo "</div></td>";
 
 // ----------------------------------------------------------
 // --------------- The main mods section --------------------
 echo "<td valign=top>";
-
+/*    */ 
 // If I am displaying an expanded module, this will take the entire content
 // part and we are no longer displaying all the modules of one person.
 //
-if ($expandedModule = isExpandedModule($_GET['exp'])) {
-  // Get the long title of the module to display.
-  $moduleTitle = $person->getLongTitleForWhat($expandedModule);
+$viewmode = @$_GET['viewmode'];
 
-  // TODO(vivi): Move this stuff into templates too.
-  echo "<div class=module>";
-  echo "<div class=moduletitle>$moduleTitle</div>";
-  echo "<div class=modulecontent>";
+if($viewmode == 'clasic'){
 
-  // Based on the module name, load the 'module_expanded.php' file.
-  $filename = str_replace("/", "_", $expandedModule);
-  include('mods/' . $filename . '_expanded.php');
+    if ($expandedModule != isExpandedModule($_GET['exp'])) {
+      // Get the long title of the module to display.
+      $moduleTitle = $person->getLongTitleForWhat($expandedModule);
 
-  echo "</div></div>";
+      // TODO(vivi): Move this stuff into templates too.
+      echo "<div class=module>";
+      echo "<div class=moduletitle>$moduleTitle</div>";
+      echo "<div class=modulecontent>";
 
-} else {
-  $history = $person->getHistory();
+      // Based on the module name, load the 'module_expanded.php' file.
+      $filename = str_replace("/", "_", $expandedModule);
+      include('mods/' . $filename . '_expanded.php');
 
-  // If we only have one module for this person, append the expanded news module
-  // at the end so that the page doesn't look totally stupid.
-  if (sizeof($history) <= 1) {
-    array_push($history, 'news/expanded');
-  }
-
-  // If we are simply displaying a person's page, go through all the modules
-  // that we loaded from people_history and load them one by one.
-  foreach ($history as $moduleName) {
-    // Display the wrapper for the module, with a title.
-    // TODO(vivi): Move this stuff into a template.
-    echo "<div class=module>";
-    $moduleTitle = $person->getLongTitleForWhat($moduleName);
-    echo "<div class=moduletitle>$moduleTitle</div><div class=modulecontent>";
-
-    // Based on the module name, load the 'module_compact.php' file.
-    $filename = str_replace("/", "_", $moduleName);
-
-    // This test is a bit of a hack so that we can display the expaneded news
-    // module on the person's page when the person has only one other module.
-    if (strrpos($filename, 'expanded') === false) {
-      // If this is not an expanded module, include the compact one.
-      include("mods/{$filename}_compact.php");
     } else {
-      // Otherwise just include the expanded module.
-      include("mods/{$filename}.php");
+
+      $history = $person->getHistory();
+
+      // If we only have one module for this person, append the expanded news module
+      // at the end so that the page doesn't look totally stupid.
+      if (sizeof($history) <= 1) {
+        array_push($history, 'news/expanded');
+      }
+
+      // If we are simply displaying a person's page, go through all the modules
+      // that we loaded from people_history and load them one by one.
+      foreach ($history as $moduleName) {
+        // Display the wrapper for the module, with a title.
+        // TODO(vivi): Move this stuff into a template.
+        echo "<div class=module>";
+        $moduleTitle = $person->getLongTitleForWhat($moduleName);
+        echo "<div class=moduletitle>$moduleTitle</div><div class=modulecontent>";
+
+        // Based on the module name, load the 'module_compact.php' file.
+        $filename = str_replace("/", "_", $moduleName);
+
+        // This test is a bit of a hack so that we can display the expaneded news
+        // module on the person's page when the person has only one other module.
+        if (strrpos($filename, 'expanded') === false) {
+          // If this is not an expanded module, include the compact one.
+          include("mods/{$filename}_compact.php");
+        } else {
+          // Otherwise just include the expanded module.
+          include("mods/{$filename}.php");
+        }
+
+        echo "</div></div>";
+      }
     }
-
-    echo "</div></div>";
-  }
-
+} else {
+  echo dirname(__FILE__);
 }
-?>
 
-<?php
+
+
+
 // The hook into WordPress comments, displayed for each person at the bottom.
-include('person_comments.php')
+//include('person_comments.php')
 ?>
 
 <?php
